@@ -11,11 +11,34 @@ const _stateSystem = 'mobx';
 
 Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
 
+/// Typed attribute keys for MobX instrumentation. The OTel semconv
+/// registry has no state-management convention yet; these are neutral
+/// `state.*` names in a local enum implementing [OTelSemantic] until
+/// the registry defines them.
+enum MobxSemantics implements OTelSemantic {
+  /// `state.system` — the state-management library (`mobx`).
+  stateSystem('state.system'),
+
+  /// `state.operation` — the kind of state mutation (`action`).
+  stateOperation('state.operation'),
+
+  /// `state.action.name` — the MobX action name.
+  stateActionName('state.action.name');
+
+  const MobxSemantics(this.key);
+
+  @override
+  final String key;
+
+  @override
+  String toString() => key;
+}
+
 Attributes _attrs({required String operation, required String actionName}) =>
     OTel.attributesFromMap(<String, Object>{
-      'state.system': _stateSystem,
-      'state.operation': operation,
-      'state.action.name': actionName,
+      MobxSemantics.stateSystem.key: _stateSystem,
+      MobxSemantics.stateOperation.key: operation,
+      MobxSemantics.stateActionName.key: actionName,
     });
 
 /// Runs [body] inside a MobX action AND inside an OTel span named
@@ -42,7 +65,7 @@ T tracedRunInAction<T>(String name, T Function() body) {
   } catch (e, st) {
     span.addAttributes(OTel.attributes([
       OTel.attributeString(
-        ErrorResource.errorType.key,
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
@@ -74,7 +97,7 @@ Future<T> tracedRunInActionAsync<T>(
   } catch (e, st) {
     span.addAttributes(OTel.attributes([
       OTel.attributeString(
-        ErrorResource.errorType.key,
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
