@@ -1,7 +1,7 @@
 // Licensed under the Apache License, Version 2.0
 // Copyright 2025, Mindful Software LLC, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'package:mobx/mobx.dart' as mobx;
 
 import 'mobx_suppression.dart';
@@ -9,7 +9,7 @@ import 'mobx_suppression.dart';
 const _tracerName = 'otel_mobx';
 const _stateSystem = 'mobx';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 /// Typed attribute keys for MobX instrumentation. The OTel semconv
 /// registry has no state-management convention yet; these are neutral
@@ -35,7 +35,7 @@ enum MobxSemantics implements OTelSemantic {
 }
 
 Attributes _attrs({required String operation, required String actionName}) =>
-    OTel.attributesFromMap(<String, Object>{
+    OTelAPI.attributesFromMap(<String, Object>{
       MobxSemantics.stateSystem.key: _stateSystem,
       MobxSemantics.stateOperation.key: operation,
       MobxSemantics.stateActionName.key: actionName,
@@ -63,8 +63,8 @@ T tracedRunInAction<T>(String name, T Function() body) {
   try {
     return mobx.runInAction(body, name: name);
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
         ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
@@ -95,8 +95,8 @@ Future<T> tracedRunInActionAsync<T>(
   try {
     return await mobx.runInAction(body, name: name);
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
         ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
